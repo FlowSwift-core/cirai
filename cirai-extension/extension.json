@@ -1,0 +1,103 @@
+{
+	"name": "cirai-extension",
+	"uuid": "303392c332a444e4a8291c722d7f2056",
+	"displayName": "Cirai - AI Assistant",
+	"description": "EasyEDA Pro AI Assistant",
+	"version": "1.0.0",
+	"publisher": "Cirai",
+	"engines": {
+		"eda": "^3.0.0"
+	},
+	"license": "Apache-2.0",
+	"repository": {
+		"type": "extension-store",
+		"url": ""
+	},
+	"categories": "Project",
+	"keywords": [
+		"EDA",
+		"AI",
+		"Design",
+		"Copilot",
+		"Agent"
+	],
+	"images": {
+		"logo": "./images/logo.png"
+	},
+	"homepage": "https://github.com/sengbin/JLCEDA-Design-Copilot",
+	"bugs": "https://github.com/sengbin/JLCEDA-Design-Copilot/issues",
+	"activationEvents": {},
+	"entry": "./dist/index",
+	"dependentExtensions": {},
+	"headerMenus": {
+		"home": [
+			{
+				"id": "jlceda-design-copilot",
+				"title": "AI 设计助手",
+				"menuItems": [
+					{
+						"id": "ChatTool",
+						"title": "聊天",
+						"registerFn": "openChatTool"
+					},
+					{
+						"id": "AIModelConfig",
+						"title": "设置",
+						"registerFn": "openAiModelConfig"
+					},
+					{
+						"id": "About",
+						"title": "About...",
+						"registerFn": "about"
+					}
+				]
+			}
+		],
+		"sch": [
+			{
+				"id": "jlceda-design-copilot",
+				"title": "AI 设计助手",
+				"menuItems": [
+					{
+						"id": "ChatTool",
+						"title": "聊天",
+						"registerFn": "openChatTool"
+					},
+					{
+						"id": "AIModelConfig",
+						"title": "设置",
+						"registerFn": "openAiModelConfig"
+					},
+					{
+						"id": "About",
+						"title": "About...",
+						"registerFn": "about"
+					}
+				]
+			}
+		],
+		"pcb": [
+			{
+				"id": "jlceda-design-copilot",
+				"title": "AI 设计助手",
+				"menuItems": [
+					{
+						"id": "ChatTool",
+						"title": "聊天",
+						"registerFn": "openChatTool"
+					},
+					{
+						"id": "AIModelConfig",
+						"title": "设置",
+						"registerFn": "openAiModelConfig"
+					},
+					{
+						"id": "About",
+						"title": "About...",
+						"registerFn": "about"
+					}
+				]
+			}
+		]
+	}
+}
