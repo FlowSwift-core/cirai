@@ -10,8 +10,8 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "ai": "^4.0.0",
-    "@ai-sdk/openai": "^1.0.0",
+    "ai": "^6.0.0",
+    "@ai-sdk/openai": "^2.0.0",
     "@hono/node-server": "^1.13.0",
     "hono": "^4.6.0",
     "zod": "^3.23.0"

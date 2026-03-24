@@ -1,18 +1,36 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { useChat } from '@ai-sdk/react'
+import { DefaultChatTransport } from 'ai'
 
 const API_URL = 'http://localhost:3001/api/chat'
 
 function App() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const [input, setInput] = useState('')
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat({
-    api: API_URL,
+  const { messages, sendMessage, status, error } = useChat({
+    transport: new DefaultChatTransport({
+      api: API_URL,
+    }),
   })
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!input.trim() || status === 'streaming') return
+    sendMessage({ text: input.trim() })
+    setInput('')
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSubmit(e)
+    }
+  }
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
@@ -47,9 +65,13 @@ function App() {
                   : 'bg-white border shadow-sm text-gray-800'
               }`}
             >
-              <div className="whitespace-pre-wrap">
-                {msg.content || (msg.role === 'assistant' && isLoading ? '...' : '')}
-              </div>
+              {msg.parts
+                .filter(part => part.type === 'text')
+                .map((part, i) => (
+                  <div key={i} className="whitespace-pre-wrap">
+                    {part.text}
+                  </div>
+                ))}
             </div>
           </div>
         ))}
@@ -60,21 +82,16 @@ function App() {
         <form onSubmit={handleSubmit} className="flex gap-2">
           <textarea
             value={input}
-            onChange={handleInputChange}
-            onKeyDown={e => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault()
-                handleSubmit()
-              }
-            }}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder="Type your message..."
             className="flex-1 border rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
             rows={2}
-            disabled={isLoading}
+            disabled={status === 'streaming'}
           />
           <button
             type="submit"
-            disabled={isLoading || !input.trim()}
+            disabled={status === 'streaming' || !input.trim()}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Send
