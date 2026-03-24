@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
-import { streamText } from 'ai'
-import { openai } from '@ai-sdk/openai'
+import { streamText, convertToModelMessages } from 'ai'
+import { createOpenAICompatible } from '@ai-sdk/openai-compatible'
 
 const chatRouter = new Hono()
 
@@ -14,15 +14,18 @@ chatRouter.post('/chat', async c => {
     return c.json({ error: 'NVIDIA_API_KEY not configured' }, 500)
   }
 
-  const client = openai({
+  const client = createOpenAICompatible({
+    name: 'nim',
     apiKey,
     baseURL,
   })
 
+  console.log('Received messages', messages.length);
+  const modelMessages = await convertToModelMessages(messages)
   const result = streamText({
     model: client('openai/gpt-oss-120b'),
     system: 'You are Cirai, an AI assistant for EasyEDA Pro. Help users with component selection, PCB design tips, and general electronics questions.',
-    messages,
+    messages: modelMessages,
   })
 
   return result.toUIMessageStreamResponse()
