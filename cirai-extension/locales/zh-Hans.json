@@ -1,6 +1,5 @@
 {
 	"About": "关于",
-	"EDA Design Copilot v": "EDA Design Copilot v${1}",
-	"EDA Design Copilot About Content": "EDA Design Copilot v${1}\nAI Assistant for Schematic and PCB Design\n提供对话问答、图片粘贴与模型配置能力，帮助提升 EDA 开发效率。\n作者：Lion",
-	"Build Time": "构建时间：2026-03-23 11:28:15"
+	"Cirai v": "Cirai v${1}",
+	"Cirai About Content": "Cirai v${1}\n专为 EasyEDA Pro 打造的 AI 助手\n通过对话式交互提升 EDA 设计效率。\n作者：Cirai 团队"
 }
