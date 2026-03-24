@@ -1,13 +1,17 @@
 import { useRef, useEffect, useState } from 'react'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
+import { getEDA } from '@cirai/adapter'
 
 const API_URL = 'http://localhost:3001/api/chat'
+
+const eda = getEDA()
 
 function App() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [input, setInput] = useState('')
   const [isFocused, setIsFocused] = useState(false)
+  const [userInfo] = useState(() => eda.sys_Environment.getUserInfo())
 
   const { messages, sendMessage, status, error } = useChat({
     transport: new DefaultChatTransport({
@@ -57,7 +61,15 @@ function App() {
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
+            {userInfo.username && (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-tertiary border border-border-subtle">
+                <div className="w-6 h-6 rounded-full bg-accent-primary/20 flex items-center justify-center text-xs font-medium text-accent-primary">
+                  {userInfo.username.charAt(0).toUpperCase()}
+                </div>
+                <span className="text-sm text-content-secondary">{userInfo.username}</span>
+              </div>
+            )}
             <div className="px-2.5 py-1 rounded-md bg-surface-tertiary border border-border-subtle text-xs font-mono text-content-muted">
               {status === 'streaming' ? (
                 <span className="flex items-center gap-1.5">

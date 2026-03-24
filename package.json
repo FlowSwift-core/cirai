@@ -16,5 +16,8 @@
   "dependencies": {
     "@ai-sdk/openai": "^3.0.48",
     "@ai-sdk/openai-compatible": "^2.0.37"
+  },
+  "devDependencies": {
+    "@jlceda/pro-api-types": "^0.2.21"
   }
 }
