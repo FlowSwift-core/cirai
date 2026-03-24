@@ -1,106 +1,18 @@
-import { useState, useRef, useEffect } from 'react'
-
-export interface Message {
-  id: string
-  role: 'user' | 'assistant'
-  content: string
-  timestamp: number
-}
+import { useRef, useEffect } from 'react'
+import { useChat } from '@ai-sdk/react'
 
 const API_URL = 'http://localhost:3001/api/chat'
 
 function App() {
-  const [messages, setMessages] = useState<Message[]>([])
-  const [input, setInput] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat({
+    api: API_URL,
+  })
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
-
-  const sendMessage = async () => {
-    if (!input.trim() || isLoading) return
-
-    const userMessage: Message = {
-      id: `msg_${Date.now()}`,
-      role: 'user',
-      content: input.trim(),
-      timestamp: Date.now(),
-    }
-
-    setMessages(prev => [...prev, userMessage])
-    setInput('')
-    setIsLoading(true)
-
-    try {
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: [...messages, userMessage] }),
-      })
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`)
-      }
-
-      const reader = response.body?.getReader()
-      if (!reader) throw new Error('No response body')
-
-      const assistantMessage: Message = {
-        id: `msg_${Date.now()}`,
-        role: 'assistant',
-        content: '',
-        timestamp: Date.now(),
-      }
-      setMessages(prev => [...prev, assistantMessage])
-
-      const decoder = new TextDecoder()
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-        const chunk = decoder.decode(value)
-        const lines = chunk.split('\n').filter(line => line.startsWith('data: '))
-
-        for (const line of lines) {
-          const data = line.slice(6)
-          if (data === '[DONE]') continue
-          try {
-            const parsed = JSON.parse(data)
-            if (parsed.content) {
-              setMessages(prev => {
-                const updated = [...prev]
-                const lastMsg = updated[updated.length - 1]
-                if (lastMsg && lastMsg.role === 'assistant') {
-                  lastMsg.content += parsed.content
-                }
-                return updated
-              })
-            }
-          } catch {
-            // Skip invalid JSON
-          }
-        }
-      }
-    } catch (err) {
-      const errorMsg: Message = {
-        id: `msg_${Date.now()}`,
-        role: 'assistant',
-        content: `Error: ${err instanceof Error ? err.message : 'Unknown error'}`,
-        timestamp: Date.now(),
-      }
-      setMessages(prev => [...prev, errorMsg])
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      sendMessage()
-    }
-  }
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
@@ -116,6 +28,13 @@ function App() {
             <p className="text-sm">Ask me anything about your EasyEDA project.</p>
           </div>
         )}
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded">
+            Error: {error.message}
+          </div>
+        )}
+
         {messages.map(msg => (
           <div
             key={msg.id}
@@ -128,50 +47,39 @@ function App() {
                   : 'bg-white border shadow-sm text-gray-800'
               }`}
             >
-              <div className="whitespace-pre-wrap">{msg.content}</div>
-              <div
-                className={`text-xs mt-1 ${
-                  msg.role === 'user' ? 'text-blue-100' : 'text-gray-400'
-                }`}
-              >
-                {new Date(msg.timestamp).toLocaleTimeString()}
+              <div className="whitespace-pre-wrap">
+                {msg.content || (msg.role === 'assistant' && isLoading ? '...' : '')}
               </div>
             </div>
           </div>
         ))}
-        {isLoading && (
-          <div className="flex justify-start">
-            <div className="bg-white border rounded-lg px-4 py-2 shadow-sm">
-              <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100" />
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200" />
-              </div>
-            </div>
-          </div>
-        )}
         <div ref={messagesEndRef} />
       </div>
 
       <div className="border-t bg-white p-4">
-        <div className="flex gap-2">
+        <form onSubmit={handleSubmit} className="flex gap-2">
           <textarea
             value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
+            onChange={handleInputChange}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                handleSubmit()
+              }
+            }}
             placeholder="Type your message..."
             className="flex-1 border rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
             rows={2}
             disabled={isLoading}
           />
           <button
-            onClick={sendMessage}
+            type="submit"
             disabled={isLoading || !input.trim()}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Send
           </button>
-        </div>
+        </form>
       </div>
     </div>
   )

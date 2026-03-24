@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { stream } from 'hono/streaming'
 import { streamText } from 'ai'
 import { openai } from '@ai-sdk/openai'
 
@@ -23,10 +24,14 @@ chatRouter.post('/chat', async c => {
 
   const result = streamText({
     model: client('nvidia/llama-3.1-nemotron-70b-instruct'),
-    messages: messages as any,
+    system: 'You are Cirai, an AI assistant for EasyEDA Pro. Help users with component selection, PCB design tips, and general electronics questions.',
+    messages,
   })
 
-  return result.toDataStreamResponse()
+  c.header('X-Vercel-AI-Data-Stream', 'v1')
+  c.header('Content-Type', 'text/plain; charset=utf-8')
+
+  return stream(c, stream => stream.pipe(result.toDataStream()))
 })
 
 export { chatRouter }
