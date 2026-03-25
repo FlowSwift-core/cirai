@@ -4,13 +4,14 @@
   "private": true,
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "cirai-extension"
   ],
   "scripts": {
     "dev": "npm run dev --workspace=apps/web & npm run dev --workspace=apps/api",
     "dev:web": "npm run dev --workspace=apps/web",
     "dev:api": "npm run dev --workspace=apps/api",
-    "build": "npm run build --workspaces",
+    "build": "npm run build --workspaces && npm run build --workspace=cirai-extension",
     "lint": "npm run lint --workspaces"
   },
   "dependencies": {

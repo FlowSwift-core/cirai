@@ -9,14 +9,14 @@ const chatRouter = new Hono()
 const bashToolPromise = getBashTool()
 
 const edaQueryTool = tool({
-  description: 'Query the current EasyEDA environment state including user, project, document, board, PCB, schematic, selection, team, workspace, and editor information. Returns a comprehensive snapshot of the current EDA context.',
+  description: 'Query the current EasyEDA environment state. Returns: user info, project info, active document (schematic/PCB), board dimensions, PCB/schematic primitives, selected objects, team info, workspace info, and editor version. Use this as the first step to understand the current design context.',
   inputSchema: z.object({}),
 })
 
 const edaExecTool = tool({
-  description: 'Execute arbitrary JavaScript code in the EasyEDA runtime with access to the global `eda` object. Use this to perform actions or query specific data not covered by eda_query. The code runs in an async context with `eda` injected. Enforces a timeout (default 30s).',
+  description: 'Execute arbitrary JavaScript code in the EasyEDA runtime with access to the global `eda` object. IMPORTANT: Your code MUST return a result using `return` statement - console.log output is NOT captured. Use return to provide useful information about the schematic, PCB, components, selection, or any other EDA data. The code runs in an async context with `eda` injected. Enforces a timeout (default 30s). Example: `return await eda.sch_SelectControl.getAllSelectedPrimitives();`',
   inputSchema: z.object({
-    code: z.string().describe('JavaScript code to execute. The `eda` object is available in scope. Must be valid async-capable code.'),
+    code: z.string().describe('JavaScript code to execute. The `eda` object is available in scope. Must be valid async-capable code. MUST include a return statement to provide results.'),
     timeout: z.number().optional().describe('Timeout in milliseconds (default 30000)'),
   }),
 })
@@ -45,7 +45,15 @@ chatRouter.post('/chat', async c => {
   const result = streamText({
     model: client('openai/gpt-oss-120b'),
     system: `Today is ${today}, You are Cirai, an circuit design assistant for EasyEDA Pro. 
-<Overview>    
+<EDA_Query_Tool>
+你可以使用 \`eda_query\` 工具一键获取当前 EasyEDA 环境的状态，包括用户、项目、文档、板级、PCB、原理图、选区、团队、工作区和编辑器信息等。这个工具会返回当前 EDA 上下文的全面快照，帮助你了解用户当前的设计环境和状态。
+</EDA_Query_Tool>
+
+<EDA_Exec_Tool>
+你可以使用 \`eda_exec\` 工具在 EasyEDA 运行时执行任意 JavaScript 代码，并访问全局的 \`eda\` 对象。使用这个工具来执行操作或查询特定数据。代码在一个异步上下文中运行，并注入了 \`eda\` 对象。请注意，执行的代码必须是有效的异步代码，并且会强制执行一个超时（默认 30 秒）。
+</EDA_Exec_Tool>
+
+<EDA_API_Access>
 嘉立创 EDA 专业版扩展 API 模块下存在许多各司其职的类，所有的 **类**、**枚举**、**接口**、**类型别名** 默认都注册在 \`EDA\` 基类下，并已实例化为 [eda](references/_index.md) 对象存在于每一个扩展运行时的根作用域中，你可以直接通过 \`eda\` 对象访问到它。
 
 所有的扩展运行时都会获得一个独立的 \`eda\` 对象，它不与其他扩展共用。你可以在 [调试模式](#进入调试模式) 下在扩展内（或 [独立脚本](#使用独立脚本功能调试) 内）使用以下代码在控制台输出该对象：
@@ -71,9 +79,7 @@ const t = eda.sys_I18n.text; // 将 eda.sys_I18n.text 方法赋值给 t
 eda.sys_ToastMessage.showMessage(t('Done'), ESYS_ToastMessageType.INFO); // 这将会与第 2 行得到完全相同的结果
 \`\`\`
 
-</Overview>
 
-<Guidelines>
 You have access to EasyEDA API documentation in an in-memory filesystem at:
 - guide/ - Getting started guides
 - references/ - API reference documentation
@@ -84,7 +90,7 @@ Use the bash tool to search and read docs:
 - ls references/
 
 Do NOT use destructive commands (rm, mv, etc).
-</Guidelines>
+</EDA_API_Access>
 `,
     messages: modelMessages,
     tools: { bash, eda_query: edaQueryTool, eda_exec: edaExecTool },

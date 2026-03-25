@@ -21,6 +21,9 @@ function App() {
     }),
     sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
     onToolCall: async ({ toolCall }) => {
+      if (toolCall.dynamic) {
+        return
+      }
       if (toolCall.toolName === 'eda_query') {
         const result = await edaQuery()
         addToolOutput({
@@ -29,8 +32,7 @@ function App() {
           output: result,
         })
       } else if (toolCall.toolName === 'eda_exec') {
-        const args = toolCall as unknown as { args: { code: string; timeout?: number } }
-        const result = await edaExec(args.args)
+        const result = await edaExec(toolCall.input as { code: string; timeout?: number })
         addToolOutput({
           tool: toolCall.toolName,
           toolCallId: toolCall.toolCallId,
