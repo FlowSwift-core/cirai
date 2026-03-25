@@ -11,8 +11,8 @@ export function about(): void {
 }
 
 export async function openChatTool(): Promise<void> {
-	await eda.sys_IFrame.openIFrame('/iframe/index.html', 550, 700, 'cirai-chat-tool', {
-		maximizeButton: false,
+	await eda.sys_IFrame.openIFrame('/iframe/index.html', 1200, 800, 'cirai-chat-tool', {
+		maximizeButton: true,
 		minimizeButton: true,
 	});
 }
