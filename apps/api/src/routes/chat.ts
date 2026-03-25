@@ -1,11 +1,25 @@
 import { Hono } from 'hono'
-import { streamText, convertToModelMessages, stepCountIs } from 'ai'
+import { streamText, convertToModelMessages, stepCountIs, tool } from 'ai'
+import { z } from 'zod'
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible'
 import { getBashTool } from '../tools/bash-tool'
 
 const chatRouter = new Hono()
 
 const bashToolPromise = getBashTool()
+
+const edaQueryTool = tool({
+  description: 'Query the current EasyEDA environment state including user, project, document, board, PCB, schematic, selection, team, workspace, and editor information. Returns a comprehensive snapshot of the current EDA context.',
+  inputSchema: z.object({}),
+})
+
+const edaExecTool = tool({
+  description: 'Execute arbitrary JavaScript code in the EasyEDA runtime with access to the global `eda` object. Use this to perform actions or query specific data not covered by eda_query. The code runs in an async context with `eda` injected. Enforces a timeout (default 30s).',
+  inputSchema: z.object({
+    code: z.string().describe('JavaScript code to execute. The `eda` object is available in scope. Must be valid async-capable code.'),
+    timeout: z.number().optional().describe('Timeout in milliseconds (default 30000)'),
+  }),
+})
 
 chatRouter.post('/chat', async c => {
   const { messages } = await c.req.json()
@@ -73,7 +87,7 @@ Do NOT use destructive commands (rm, mv, etc).
 </Guidelines>
 `,
     messages: modelMessages,
-    tools: { bash },
+    tools: { bash, eda_query: edaQueryTool, eda_exec: edaExecTool },
     stopWhen: stepCountIs(20),
     onStepFinish: (step) => {
       if (step.toolCalls.length > 0) {

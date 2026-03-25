@@ -110,7 +110,61 @@ interface MockEDAAPI {
     getNetlistFile: (fileName?: string, netlistType?: number) => Promise<File | undefined>
   }
   pcb_ManufactureData: {
-    getNetlistFile: (fileName?: string, netlistType?: number) => Promise<File | undefined>
+    getNetlistFile: (fileName?: string, _netlistType?: number) => Promise<File | undefined>
+  }
+  dmt_Project: {
+    getCurrentProjectInfo: () => Promise<{
+      id?: string
+      name?: string
+      path?: string
+      type?: string
+    }>
+  }
+  dmt_SelectControl: {
+    getCurrentDocumentInfo: () => Promise<{
+      id?: string
+      name?: string
+      type?: string
+      filePath?: string
+      isModified?: boolean
+    }>
+  }
+  dmt_Board: {
+    getCurrentBoardInfo: () => Promise<{
+      id?: string
+      name?: string
+      width?: number
+      height?: number
+      layers?: number
+    }>
+  }
+  dmt_Pcb: {
+    getCurrentPcbInfo: () => Promise<{
+      id?: string
+      name?: string
+      primitives?: unknown[]
+    }>
+  }
+  dmt_Schematic: {
+    getCurrentSchematicInfo: () => Promise<{
+      id?: string
+      name?: string
+      primitives?: unknown[]
+    }>
+  }
+  dmt_Team: {
+    getCurrentTeamInfo: () => Promise<{
+      id?: string
+      name?: string
+      role?: string
+    }>
+  }
+  dmt_Workspace: {
+    getCurrentWorkspaceInfo: () => Promise<{
+      id?: string
+      name?: string
+      type?: string
+    }>
   }
 }
 
@@ -379,6 +433,60 @@ U1         SOIC-8         NE555
         const blob = new Blob([netlist], { type: 'text/plain' })
         return new File([blob], name, { type: 'text/plain' })
       },
+    },
+    dmt_Project: {
+      getCurrentProjectInfo: async () => ({
+        id: 'proj_001',
+        name: 'Mock Project',
+        path: '/projects/mock-project',
+        type: 'pcb',
+      }),
+    },
+    dmt_SelectControl: {
+      getCurrentDocumentInfo: async () => ({
+        id: 'doc_001',
+        name: 'Main Schematic',
+        type: 'schematic',
+        filePath: '/projects/mock-project/main.sch',
+        isModified: false,
+      }),
+    },
+    dmt_Board: {
+      getCurrentBoardInfo: async () => ({
+        id: 'board_001',
+        name: 'Main Board',
+        width: 100,
+        height: 80,
+        layers: 2,
+      }),
+    },
+    dmt_Pcb: {
+      getCurrentPcbInfo: async () => ({
+        id: 'pcb_001',
+        name: 'Main PCB',
+        primitives: [],
+      }),
+    },
+    dmt_Schematic: {
+      getCurrentSchematicInfo: async () => ({
+        id: 'sch_001',
+        name: 'Main Schematic',
+        primitives: [],
+      }),
+    },
+    dmt_Team: {
+      getCurrentTeamInfo: async () => ({
+        id: 'team_001',
+        name: 'Mock Team',
+        role: 'owner',
+      }),
+    },
+    dmt_Workspace: {
+      getCurrentWorkspaceInfo: async () => ({
+        id: 'ws_001',
+        name: 'Mock Workspace',
+        type: 'personal',
+      }),
     },
   }
 }

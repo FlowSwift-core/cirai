@@ -1,7 +1,9 @@
 import { useRef, useEffect, useState } from 'react'
 import { useChat } from '@ai-sdk/react'
-import { DefaultChatTransport } from 'ai'
+import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls } from 'ai'
 import { getEDA } from '@cirai/adapter'
+import { edaQuery } from './tools/eda-query'
+import { edaExec } from './tools/eda-exec'
 
 const API_URL = 'http://localhost:3001/api/chat'
 
@@ -13,10 +15,29 @@ function App() {
   const [isFocused, setIsFocused] = useState(false)
   const [userInfo] = useState(() => eda.sys_Environment.getUserInfo())
 
-  const { messages, sendMessage, status, error } = useChat({
+  const { messages, sendMessage, status, error, addToolOutput } = useChat({
     transport: new DefaultChatTransport({
       api: API_URL,
     }),
+    sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
+    onToolCall: async ({ toolCall }) => {
+      if (toolCall.toolName === 'eda_query') {
+        const result = await edaQuery()
+        addToolOutput({
+          tool: toolCall.toolName,
+          toolCallId: toolCall.toolCallId,
+          output: result,
+        })
+      } else if (toolCall.toolName === 'eda_exec') {
+        const args = toolCall as unknown as { args: { code: string; timeout?: number } }
+        const result = await edaExec(args.args)
+        addToolOutput({
+          tool: toolCall.toolName,
+          toolCallId: toolCall.toolCallId,
+          output: result,
+        })
+      }
+    },
   })
 
   useEffect(() => {
