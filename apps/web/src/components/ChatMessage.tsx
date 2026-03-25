@@ -4,9 +4,10 @@ interface ChatMessageProps {
   message: UIMessage
   isStreaming: boolean
   isLast: boolean
+  toolStatus?: string
 }
 
-export function ChatMessage({ message, isStreaming, isLast }: ChatMessageProps) {
+export function ChatMessage({ message, isStreaming, isLast, toolStatus }: ChatMessageProps) {
   return (
     <div
       className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} message-enter`}
@@ -26,12 +27,23 @@ export function ChatMessage({ message, isStreaming, isLast }: ChatMessageProps) 
             </div>
           ))}
         {message.role === 'assistant' && isStreaming && isLast && (
-          <div className="flex items-center gap-1 mt-2 pt-2 border-t border-zinc-800/50">
-            <div className="typing-indicator flex gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-accent-primary/60" />
-              <span className="w-1.5 h-1.5 rounded-full bg-accent-primary/60" />
-              <span className="w-1.5 h-1.5 rounded-full bg-accent-primary/60" />
-            </div>
+          <div className="flex items-center gap-2 mt-2 pt-2 border-t border-zinc-800/50">
+            {toolStatus ? (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-cyan-400/80 font-mono">{toolStatus}</span>
+                <div className="typing-indicator flex gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400/60" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400/60" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400/60" />
+                </div>
+              </div>
+            ) : (
+              <div className="typing-indicator flex gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-accent-primary/60" />
+                <span className="w-1.5 h-1.5 rounded-full bg-accent-primary/60" />
+                <span className="w-1.5 h-1.5 rounded-full bg-accent-primary/60" />
+              </div>
+            )}
           </div>
         )}
       </div>

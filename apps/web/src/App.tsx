@@ -108,7 +108,7 @@ function App() {
 
           <ErrorDisplay error={error} />
 
-          <ChatList messages={messages} isStreaming={status === 'streaming'} />
+          <ChatList messages={messages} isStreaming={status === 'streaming'} toolCalls={toolCalls} />
           <div ref={messagesEndRef} />
         </div>
       </main>
