@@ -16,6 +16,7 @@ function App() {
   const [isFocused, setIsFocused] = useState(false)
   const [toolCalls, setToolCalls] = useState<ToolCall[]>([])
   const [panelExpanded, setPanelExpanded] = useState(true)
+  const [panelView, setPanelView] = useState<'tools' | 'topics'>('tools')
   const [userInfo] = useState(() => eda.sys_Environment.getUserInfo())
 
   const { messages, sendMessage, status, error, addToolOutput } = useChat({
@@ -93,6 +94,13 @@ function App() {
     }
   }
 
+  const handleSwitchView = (view: 'tools' | 'topics') => {
+    setPanelView(view)
+    if (!panelExpanded) {
+      setPanelExpanded(true)
+    }
+  }
+
   return (
     <div className="flex flex-col h-screen bg-surface-primary relative overflow-hidden">
       <div className="absolute inset-0 bg-grid" />
@@ -132,10 +140,12 @@ function App() {
         </div>
       </footer>
 
-      <ToolCallPanel 
-        toolCalls={toolCalls} 
+      <ToolCallPanel
+        toolCalls={toolCalls}
         isExpanded={panelExpanded}
         onToggle={() => setPanelExpanded(!panelExpanded)}
+        activeView={panelView}
+        onSwitchView={handleSwitchView}
       />
     </div>
   )
