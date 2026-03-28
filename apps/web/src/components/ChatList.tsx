@@ -11,8 +11,8 @@ interface ChatListProps {
 const THINKING_MESSAGES = [
   'Analyzing your request',
   'Processing',
-  'Thinking',
   'Working on it',
+  'Thinking',
 ]
 
 const TOOL_MESSAGES: Record<string, string[]> = {
@@ -51,7 +51,7 @@ export function ChatList({ messages, isStreaming, toolCalls }: ChatListProps) {
       const seed = JSON.stringify(pendingTool.input).length
       return getRandomMessage(toolMessages, seed)
     } else if (isStreaming) {
-      return getRandomMessage(THINKING_MESSAGES, messages.length)
+      return getRandomMessage(THINKING_MESSAGES, Math.floor(Math.random() * 1000))
     }
     return ''
   }, [pendingTool?.name, pendingTool?.input, isStreaming, messages.length])

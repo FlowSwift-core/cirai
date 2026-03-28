@@ -50,7 +50,7 @@ export function ToolCallPanel({ toolCalls, isExpanded, onToggle, activeView, onS
         <div className="flex items-center gap-2">
           <div className={`w-2 h-2 rounded-full ${activeView === 'tools' ? 'bg-[#22d3ee]' : 'bg-[#a855f7]'}`} />
           <span className="text-sm font-medium text-[#fafafa] tracking-tight">
-            {activeView === 'tools' ? 'Tool Debug' : 'Topics'}
+            {activeView === 'tools' ? 'Tool Use' : 'Topics'}
           </span>
           {activeView === 'tools' && toolCalls.length > 0 && (
             <span className="px-1.5 py-0.5 text-[10px] font-mono bg-[#27272a] text-[#a1a1aa] rounded">

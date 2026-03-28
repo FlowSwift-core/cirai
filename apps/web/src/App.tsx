@@ -30,6 +30,12 @@ function App() {
       
       const toolCallId = `tool_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
       
+      // only for selected tools, you can choose to handle all tools or set up a whitelist
+      const supportedTools = ['eda_query', 'eda_exec']
+      if (!supportedTools.includes(toolCall.toolName)) {
+        return
+      }
+
       setToolCalls(prev => [...prev, {
         id: toolCallId,
         name: toolCall.toolName,
@@ -37,7 +43,7 @@ function App() {
         status: 'pending',
         startTime: Date.now(),
       }])
-
+      
       try {
         if (toolCall.toolName === 'eda_exec') {
           const result = await edaExec(toolCall.input as { code: string; timeout?: number })
@@ -51,6 +57,8 @@ function App() {
               ? { ...tc, output: result, status: result.success ? 'success' : 'error', endTime: Date.now() }
               : tc
           ))
+        } else {
+          // do nothing for unknown tool, or you can choose to set an error state
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : String(err)
