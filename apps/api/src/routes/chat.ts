@@ -8,15 +8,10 @@ const chatRouter = new Hono()
 
 const bashToolPromise = getBashTool()
 
-const edaQueryTool = tool({
-  description: 'Query the current EasyEDA environment state. Returns: user info, project info, active document (schematic/PCB), board dimensions, PCB/schematic primitives, selected objects, team info, workspace info, and editor version. Use this as the first step to understand the current design context.',
-  inputSchema: z.object({}),
-})
-
 const edaExecTool = tool({
-  description: 'Execute arbitrary JavaScript code in the EasyEDA runtime with access to the global `eda` object. IMPORTANT: Your code MUST return a result using `return` statement - console.log output is NOT captured. Use return to provide useful information about the schematic, PCB, components, selection, or any other EDA data. The code runs in an async context with `eda` injected. Enforces a timeout (default 30s). Example: `return await eda.sch_SelectControl.getAllSelectedPrimitives();`',
+  description: 'Execute JavaScript code in EasyEDA runtime and get results with current environment status. The code MUST use `return` statement - console.log is not captured. Automatically includes current project, document, selection count, and error/warning status in the `_status` field. Large outputs (>2000 chars) are automatically truncated with `_truncated: true` and `shown/total` counts.',
   inputSchema: z.object({
-    code: z.string().describe('JavaScript code to execute. The `eda` object is available in scope. Must be valid async-capable code. MUST include a return statement to provide results.'),
+    code: z.string().describe('JavaScript code to execute. The `eda` object is available. MUST include return statement.'),
     timeout: z.number().optional().describe('Timeout in milliseconds (default 30000)'),
   }),
 })
@@ -44,13 +39,21 @@ chatRouter.post('/chat', async c => {
   const { bash } = await bashToolPromise
   const result = streamText({
     model: client('openai/gpt-oss-120b'),
-    system: `Today is ${today}, You are Cirai, an circuit design assistant for EasyEDA Pro. 
-<EDA_Query_Tool>
-你可以使用 \`eda_query\` 工具一键获取当前 EasyEDA 环境的状态，包括用户、项目、文档、板级、PCB、原理图、选区、团队、工作区和编辑器信息等。这个工具会返回当前 EDA 上下文的全面快照，帮助你了解用户当前的设计环境和状态。
-</EDA_Query_Tool>
-
+    system: `Today is ${today}, You are Cirai, an circuit design assistant for EasyEDA Pro.
 <EDA_Exec_Tool>
-你可以使用 \`eda_exec\` 工具在 EasyEDA 运行时执行任意 JavaScript 代码，并访问全局的 \`eda\` 对象。使用这个工具来执行操作或查询特定数据。代码在一个异步上下文中运行，并注入了 \`eda\` 对象。请注意，执行的代码必须是有效的异步代码，并且会强制执行一个超时（默认 30 秒）。
+你可以使用 \`eda_exec\` 工具在 EasyEDA 运行时执行任意 JavaScript 代码。
+
+重要提示：
+- 代码必须包含 \`return\` 语句来返回结果，console.log 输出不会被捕获
+- 代码运行在异步上下文中，可以使用 async/await
+- 执行超时默认为 30 秒
+- 返回结果会自动包含 \`_status\` 字段，显示当前环境状态：
+  - project: 项目名称
+  - document: { name, type, modified }
+  - selectionCount: 选中对象数量
+  - hasError: 是否有错误
+  - warningCount: 警告数量
+- 大输出(>2000字符)会自动截断，包含 \`_truncated: true\` 和 \`shown/total\` 计数
 </EDA_Exec_Tool>
 
 <EDA_API_Access>
@@ -93,7 +96,7 @@ Do NOT use destructive commands (rm, mv, etc).
 </EDA_API_Access>
 `,
     messages: modelMessages,
-    tools: { bash, eda_query: edaQueryTool, eda_exec: edaExecTool },
+    tools: { bash, eda_exec: edaExecTool },
     stopWhen: stepCountIs(20),
     onStepFinish: (step) => {
       if (step.toolCalls.length > 0) {

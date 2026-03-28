@@ -2,7 +2,6 @@ import { useRef, useEffect, useState } from 'react'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls } from 'ai'
 import { getEDA } from '@cirai/adapter'
-import { edaQuery } from './tools/eda-query'
 import { edaExec } from './tools/eda-exec'
 import { Header, WelcomeScreen, ChatList, ChatInput, ErrorDisplay, ToolCallPanel, ToolCall } from './components'
 
@@ -40,27 +39,15 @@ function App() {
       }])
 
       try {
-        if (toolCall.toolName === 'eda_query') {
-          const result = await edaQuery()
-          addToolOutput({
-            tool: toolCall.toolName,
-            toolCallId: toolCall.toolCallId,
-            output: result,
-          })
-          setToolCalls(prev => prev.map(tc => 
-            tc.id === toolCallId 
-              ? { ...tc, output: result, status: 'success', endTime: Date.now() }
-              : tc
-          ))
-        } else if (toolCall.toolName === 'eda_exec') {
+        if (toolCall.toolName === 'eda_exec') {
           const result = await edaExec(toolCall.input as { code: string; timeout?: number })
           addToolOutput({
             tool: toolCall.toolName,
             toolCallId: toolCall.toolCallId,
             output: result,
           })
-          setToolCalls(prev => prev.map(tc => 
-            tc.id === toolCallId 
+          setToolCalls(prev => prev.map(tc =>
+            tc.id === toolCallId
               ? { ...tc, output: result, status: result.success ? 'success' : 'error', endTime: Date.now() }
               : tc
           ))
