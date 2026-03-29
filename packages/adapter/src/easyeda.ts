@@ -71,7 +71,7 @@ interface MockEDAAPI {
     saveAs: () => Promise<string>
   }
   sch_Document: {
-    getDocument: () => EasyEDADocument
+    getDocument: () => Promise<EasyEDADocument>
     getFilePath: () => string
     isModified: () => boolean
     newFile: (type: string) => void
@@ -79,13 +79,15 @@ interface MockEDAAPI {
   sch_SelectControl: {
     getSelectedObjects: () => EasyEDASelection
     getSelectionCount: () => number
+    getAllSelectedPrimitives: () => Promise<EasyEDAElement[]>
+    getAllSelectedPrimitives_PrimitiveId: () => Promise<string[]>
     selectAll: () => void
     clearSelection: () => void
     selectObject: (id: string) => void
     deselectObject: (id: string) => void
   }
   pcb_Document: {
-    getDocument: () => EasyEDADocument
+    getDocument: () => Promise<EasyEDADocument>
     getFilePath: () => string
     isModified: () => boolean
     newFile: (type: string) => void
@@ -93,6 +95,8 @@ interface MockEDAAPI {
   pcb_SelectControl: {
     getSelectedObjects: () => EasyEDASelection
     getSelectionCount: () => number
+    getAllSelectedPrimitives: () => Promise<EasyEDAElement[]>
+    getAllSelectedPrimitives_PrimitiveId: () => Promise<string[]>
     selectAll: () => void
     clearSelection: () => void
     selectObject: (id: string) => void
@@ -338,7 +342,7 @@ const createMockEDA = (): MockEDAAPI => {
       },
     },
     sch_Document: {
-      getDocument: () => ({ ...currentDoc, type: 'schematic' as const }),
+      getDocument: () => Promise.resolve({ ...currentDoc, type: 'schematic' as const }),
       getFilePath: () => currentDoc.filePath || '',
       isModified: () => false,
       newFile: (type: string) => {
@@ -353,13 +357,15 @@ const createMockEDA = (): MockEDAAPI => {
     sch_SelectControl: {
       getSelectedObjects: () => ({ ...mockSelection }),
       getSelectionCount: () => 0,
+      getAllSelectedPrimitives: () => Promise.resolve([] as EasyEDAElement[]),
+      getAllSelectedPrimitives_PrimitiveId: () => Promise.resolve([] as string[]),
       selectAll: () => console.log('[EDA Select] Select all'),
       clearSelection: () => console.log('[EDA Select] Clear selection'),
       selectObject: (id: string) => console.log('[EDA Select] Select', id),
       deselectObject: (id: string) => console.log('[EDA Select] Deselect', id),
     },
     pcb_Document: {
-      getDocument: () => ({ ...currentDoc, type: 'pcb' as const }),
+      getDocument: () => Promise.resolve({ ...currentDoc, type: 'pcb' as const }),
       getFilePath: () => currentDoc.filePath || '',
       isModified: () => false,
       newFile: (type: string) => {
@@ -374,6 +380,8 @@ const createMockEDA = (): MockEDAAPI => {
     pcb_SelectControl: {
       getSelectedObjects: () => ({ ...mockSelection }),
       getSelectionCount: () => 0,
+      getAllSelectedPrimitives: () => Promise.resolve([] as EasyEDAElement[]),
+      getAllSelectedPrimitives_PrimitiveId: () => Promise.resolve([] as string[]),
       selectAll: () => console.log('[EDA PCB Select] Select all'),
       clearSelection: () => console.log('[EDA PCB Select] Clear selection'),
       selectObject: (id: string) => console.log('[EDA PCB Select] Select', id),
